@@ -20,6 +20,7 @@ data/processed/*
 !figures/png
 figures/png/*
 !figures/png/README.md
+!figures/png/bp.png
 !/outputs
 /outputs/*
 !outputs/README.md
