@@ -1,0 +1,105 @@
+#--- Script details ------------------------------------------------------------
+# Creation date: 26 June 2023
+# Client:        client
+# Project:       scrape-tgps
+# Description:   script description
+# Author:        Nick Twort
+
+library(tidyverse)
+library(lubridate)
+library(magrittr)
+library(here)
+library(janitor)
+library(readxl)
+
+download_excel <- function(url,
+                           sheet = NULL,
+                           range = NULL,
+                           col_names = TRUE,
+                           col_types = NULL,
+                           na = "",
+                           trim_ws = TRUE,
+                           skip = 0,
+                           n_max = Inf,
+                           guess_max = min(1000, n_max),
+                           progress = readxl_progress(),
+                           .name_repair = "unique"
+) {
+  
+  tmp_file <- tempfile() 
+  utils::download.file(url, tmp_file, mode = "wb") 
+  
+  downloaded_file <- read_excel(tmp_file,
+                                sheet = sheet,
+                                range = range,
+                                col_names = col_names,
+                                col_types = col_types,
+                                na = na,
+                                trim_ws = trim_ws,
+                                skip = skip,
+                                n_max = n_max,
+                                guess_max = guess_max,
+                                progress = progress,
+                                .name_repair = .name_repair
+  )
+  
+  unlink(tmp_file)
+  
+  downloaded_file
+  
+}
+
+#--- Import data ---------------------------------------------------------------
+
+#--- * BP ----------------------------------------------------------------------
+
+bp <- "https://www.bp.com/content/dam/bp/country-sites/en_au/australia/home/products-services/pricing/tgp-excel.xlsx"
+
+bp <- download_excel(bp)
+
+bp <- bp |> 
+  clean_names() |> 
+  mutate(splitter = lag(is.na(bp_terminal_gate_pricing_by_state), default = FALSE)) |> 
+  mutate(splitter = cumsum(splitter)) |> 
+  group_by(splitter) |> 
+  group_split()
+
+bp_data <- map_dfr(bp, function(state_data) {
+  
+  if (nrow(filter(state_data, !is.na(x3))) == 0) {
+    return(tibble())
+  }
+  
+  state <- state_data[1, 1][[1]]
+  
+  fuels <- state_data |> 
+    filter(!is.na(x3)) |> 
+    first() |> 
+    as.character() |> 
+    str_subset("^Effect|^Terminal|^NA|^[0-9]", negate = TRUE) |> 
+    (\(x) set_names(x, x))() |> 
+    clean_names() |> 
+    names()
+  
+  state_data |> 
+    select(where(function(x) !all(is.na(x))), -splitter) |> 
+    filter(!is.na(x3)) |> 
+    (\(x) {
+      
+      colnames(x) <- x[1, ]
+      x
+      
+    })() |> 
+    filter(Terminal != "Terminal") |> 
+    clean_names() |> 
+    mutate(effective_date = excel_numeric_to_date(as.numeric(effective_date))) |> 
+    mutate(across(all_of(fuels), as.numeric))
+  
+}) |> 
+  mutate(date_downloaded = Sys.time())
+
+bp_data_previous <- read_rds("data/processed/bp.rds")
+
+bp_data_previous |> 
+  bind_rows(bp_data) |> 
+  write_rds("data/processed/bp.rds")
