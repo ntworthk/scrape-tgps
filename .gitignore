@@ -15,6 +15,8 @@ data/processed/*
 !data/processed/README.md
 !data/processed/bp.rds
 !data/processed/viva.rds
+!data/processed/united.rds
+!data/processed/mobil.rds
 !/figures
 /figures/*
 !figures/README.md

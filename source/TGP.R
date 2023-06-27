@@ -139,3 +139,76 @@ viva_data_previous <- read_rds("data/processed/viva.rds")
 viva_data_previous |> 
   bind_rows(viva_data) |> 
   write_rds("data/processed/viva.rds")
+
+#--- * United ------------------------------------------------------------------
+
+united <- "https://www.unitedpetroleum.com.au/terminal-gate-pricing-tgp/"
+
+united <- read_html(united) |>
+  html_nodes("table") |>
+  html_table(fill = TRUE) |>
+  magrittr::extract2(1) |> 
+  janitor::clean_names()
+
+colnames(united) <- united[1, ]
+
+united_date <- parse_date(colnames(united)[2], "%d/%m/%Y")
+
+united_data <- united |> 
+  filter(Terminal != "Terminal") |> 
+  clean_names() |> 
+  select(terminal, fuel = 2, everything()) |> 
+  mutate(across(
+    -c(terminal, fuel),
+    parse_number
+  )) |> 
+  mutate(
+    effective_date = united_date,
+    date_downloaded = Sys.time()
+  )
+
+united_data_previous <- read_rds("data/processed/united.rds")
+
+united_data_previous |> 
+  bind_rows(united_data) |> 
+  write_rds("data/processed/united.rds")
+
+#--- * Mobil -------------------------------------------------------------------
+
+mobil <- "https://www.mobil.com.au/en-au/commercial-fuels/terminal-gate"
+
+mobil_page <- read_html(mobil)
+
+mobil <- mobil_page |>
+  html_nodes("table") |>
+  html_table(fill = TRUE) |>
+  magrittr::extract2(1) |> 
+  janitor::clean_names()
+
+colnames(mobil) <- c("state", "terminal", colnames(mobil)[3:ncol(mobil)])
+
+mobil_date <- mobil_page |> 
+  html_nodes("div") |> 
+  as.character() |> 
+  str_subset("As at") |> 
+  str_extract("[0-9]{1,2} [A-z]+ [0-9]{4}") |> 
+  first() |> 
+  parse_date("%d %B %Y")
+
+mobil_data <- mobil |> 
+  filter(state != "") |> 
+  clean_names() |> 
+  mutate(across(
+    -c(state, terminal),
+    \(x) parse_number(as.character(x))
+  )) |> 
+  mutate(
+    effective_date = mobil_date,
+    date_downloaded = Sys.time()
+  )
+
+mobil_data_previous <- read_rds("data/processed/mobil.rds")
+
+mobil_data_previous |> 
+  bind_rows(mobil_data) |> 
+  write_rds("data/processed/mobil.rds")

@@ -37,7 +37,7 @@ jobs:
             renv::restore()
 
       - name: Get data - TGP
-        run: Rscript -e 'source(here::here("source", "TGP.R"), echo = TRUE)'
+        run: Rscript -e 'source(here::here("source", "go.R"), echo = TRUE)'
         
       - name: Commit
         run: |
