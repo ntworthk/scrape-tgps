@@ -14,6 +14,7 @@ data/raw/*
 data/processed/*
 !data/processed/README.md
 !data/processed/bp.rds
+!data/processed/viva.rds
 !/figures
 /figures/*
 !figures/README.md

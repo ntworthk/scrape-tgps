@@ -11,6 +11,7 @@ library(magrittr)
 library(here)
 library(janitor)
 library(readxl)
+library(rvest)
 
 download_excel <- function(url,
                            sheet = NULL,
@@ -103,3 +104,38 @@ bp_data_previous <- read_rds("data/processed/bp.rds")
 bp_data_previous |> 
   bind_rows(bp_data) |> 
   write_rds("data/processed/bp.rds")
+
+#--- * Viva --------------------------------------------------------------------
+
+url <- "https://www.vivaenergy.com.au/quick-links/terminal-gate-pricing"
+
+viva_page <- read_html(url)
+
+viva_date <- viva_page |>
+  html_nodes("h4") |>
+  as.character() |>
+  str_subset("as at") |> 
+  str_extract("[0-9]{1,2} [A-z]{1,4} [0-9]{4}") |> 
+  parse_date(format = "%d %b %Y")
+
+viva_data <- viva_page |>
+  html_nodes("table") |>
+  html_table(fill = TRUE) |>
+  magrittr::extract2(1) |> 
+  janitor::clean_names() |> 
+  mutate(state = ifelse(state == "", NA_character_, state)) |> 
+  fill(state, .direction = "down") |>
+  mutate(across(
+    -c(state, city),
+    \(x) parse_number(as.character(x))
+  )) |> 
+  mutate(
+    effective_date = viva_date,
+    date_downloaded = Sys.time()
+  )
+
+viva_data_previous <- read_rds("data/processed/viva.rds")
+
+viva_data_previous |> 
+  bind_rows(viva_data) |> 
+  write_rds("data/processed/viva.rds")
