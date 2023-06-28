@@ -14,21 +14,28 @@ library(janitor)
 #--- Import data ---------------------------------------------------------------
 
 bp_data <- read_rds("data/processed/bp.rds")
-
+mobil_data <- read_rds("data/processed/mobil.rds")
+viva_data <- read_rds("data/processed/viva.rds")
 
 fuels <- tibble(
-  fuel = c("diesel", "ulp", "pulp", "e10"),
-  tidy_fuel = c("Diesel", "ULP", "PULP", "e10")
+  fuel = c("diesel", "ulp", "pulp", "e10", "x95_premium", "x98_premium", "premium_unleaded_petrol", "unleaded_petrol", "unleaded_petrol_98", "unleaded_petrol_e10"),
+  tidy_fuel = c("Diesel", "ULP", "PULP 95", "e10", "PULP 95", "PULP 98", "PULP 95", "ULP", "PULP 98", "e10")
 )
 
-#--- Analysis ------------------------------------------------------------------
+#--- Combine data --------------------------------------------------------------
 
-g <- bp_data |> 
-  filter(terminal == "Sydney-Botany") |> 
-  pivot_longer(-c(effective_date, terminal, date_downloaded), names_to = "fuel", values_to = "tgp") |> 
+g <- bind_rows(
+  bp_data |> mutate(brand = "BP"),
+  mobil_data |> mutate(brand = "Mobil"),
+  viva_data |> mutate(brand = "Viva") |> rename(terminal = city)
+) |> 
+  filter(str_detect(terminal, "Botany|SYDNEY")) |> 
+  select(-state) |> 
+  pivot_longer(-c(brand, effective_date, terminal, date_downloaded), names_to = "fuel", values_to = "tgp") |> 
   left_join(fuels, by = "fuel") |> 
+  filter(!is.na(tgp)) |> 
   ggplot(aes(x = effective_date, y = tgp, colour = tidy_fuel)) +
-  geom_line(linewidth = 0.7) +
+  geom_line(aes(linetype = brand), linewidth = 0.7) +
   geom_point() +
   geom_text(
     data = \(x) filter(x, effective_date == max(effective_date)),
@@ -37,12 +44,12 @@ g <- bp_data |>
     nudge_x = 0.05,
     show.legend = FALSE
   ) +
-  labs(x = "Effective date", y = "Terminal gate price (c/L)", colour = "Fuel") +
+  labs(x = "Effective date", y = "Terminal gate price (c/L)", colour = "Fuel", linetype = "Supplier") +
   scale_x_date(expand = expansion(mult = c(0.05, 0.1))) +
   scale_colour_manual(
-    values = c("#008698", "#232C31", "#ECAA2B", "#8AC1AF"),
+    values = c("#008698", "#232C31", "#ECAA2B", "#8AC1AF", "#E14D18"),
     guide = guide_none()
-    ) +
+  ) +
   theme_light(base_family = "Arial", base_size = 12) +
   theme(
     panel.grid.major.x = element_blank(),
@@ -50,8 +57,43 @@ g <- bp_data |>
     plot.background = element_blank(),
     legend.background = element_blank(),
     legend.position = "bottom",
-    strip.background = element_rect(fill = "#E6E7E8")
+    strip.background = element_rect(fill = "#E6E7E8"),
+    legend.margin = margin(t = -8)
   )
+
+
+
+#--- Analysis ------------------------------------------------------------------
+
+# g <- bp_data |> 
+#   filter(terminal == "Sydney-Botany") |> 
+#   pivot_longer(-c(effective_date, terminal, date_downloaded), names_to = "fuel", values_to = "tgp") |> 
+#   left_join(fuels, by = "fuel") |> 
+#   ggplot(aes(x = effective_date, y = tgp, colour = tidy_fuel)) +
+#   geom_line(linewidth = 0.7) +
+#   geom_point() +
+#   geom_text(
+#     data = \(x) filter(x, effective_date == max(effective_date)),
+#     aes(label = tidy_fuel),
+#     hjust = 0,
+#     nudge_x = 0.05,
+#     show.legend = FALSE
+#   ) +
+#   labs(x = "Effective date", y = "Terminal gate price (c/L)", colour = "Fuel") +
+#   scale_x_date(expand = expansion(mult = c(0.05, 0.1))) +
+#   scale_colour_manual(
+#     values = c("#008698", "#232C31", "#ECAA2B", "#8AC1AF"),
+#     guide = guide_none()
+#   ) +
+#   theme_light(base_family = "Arial", base_size = 12) +
+#   theme(
+#     panel.grid.major.x = element_blank(),
+#     panel.background = element_blank(),
+#     plot.background = element_blank(),
+#     legend.background = element_blank(),
+#     legend.position = "bottom",
+#     strip.background = element_rect(fill = "#E6E7E8")
+#   )
 
 ggsave(filename = "figures/png/bp.png",
        plot = g,
