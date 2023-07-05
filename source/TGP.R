@@ -109,7 +109,9 @@ bp_data_previous |>
 
 url <- "https://www.vivaenergy.com.au/quick-links/terminal-gate-pricing"
 
-viva_page <- read_html(url)
+ua <- "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
+
+viva_page <- read_html(url, user_agent = user_agent(ua))
 
 viva_date <- viva_page |>
   html_nodes("h4") |>
