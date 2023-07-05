@@ -105,6 +105,8 @@ bp_data_previous |>
   bind_rows(bp_data) |> 
   write_rds("data/processed/bp.rds")
 
+print("Done BP")
+
 #--- * Viva --------------------------------------------------------------------
 
 # url <- "https://www.vivaenergy.com.au/quick-links/terminal-gate-pricing"
@@ -142,6 +144,8 @@ bp_data_previous |>
 #   bind_rows(viva_data) |> 
 #   write_rds("data/processed/viva.rds")
 
+# print("Done Viva")
+
 #--- * United ------------------------------------------------------------------
 
 united <- "https://www.unitedpetroleum.com.au/terminal-gate-pricing-tgp/"
@@ -174,6 +178,8 @@ united_data_previous <- read_rds("data/processed/united.rds")
 united_data_previous |> 
   bind_rows(united_data) |> 
   write_rds("data/processed/united.rds")
+
+print("Done United")
 
 #--- * Mobil -------------------------------------------------------------------
 
@@ -214,3 +220,5 @@ mobil_data_previous <- read_rds("data/processed/mobil.rds")
 mobil_data_previous |> 
   bind_rows(mobil_data) |> 
   write_rds("data/processed/mobil.rds")
+
+print("Done Mobil")
