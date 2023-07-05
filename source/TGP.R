@@ -109,75 +109,75 @@ print("Done BP")
 
 #--- * Viva --------------------------------------------------------------------
 
-# url <- "https://www.vivaenergy.com.au/quick-links/terminal-gate-pricing"
-# 
-# ua <- "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
-# 
-# viva_page <- read_html(url, user_agent = user_agent(ua))
-# 
-# viva_date <- viva_page |>
-#   html_nodes("h4") |>
-#   as.character() |>
-#   str_subset("as at") |> 
-#   str_extract("[0-9]{1,2} [A-z]{1,4} [0-9]{4}") |> 
-#   parse_date(format = "%d %b %Y")
-# 
-# viva_data <- viva_page |>
-#   html_nodes("table") |>
-#   html_table(fill = TRUE) |>
-#   magrittr::extract2(1) |> 
-#   janitor::clean_names() |> 
-#   mutate(state = ifelse(state == "", NA_character_, state)) |> 
-#   fill(state, .direction = "down") |>
-#   mutate(across(
-#     -c(state, city),
-#     \(x) parse_number(as.character(x))
-#   )) |> 
-#   mutate(
-#     effective_date = viva_date,
-#     date_downloaded = Sys.time()
-#   )
-# 
-# viva_data_previous <- read_rds("data/processed/viva.rds")
-# 
-# viva_data_previous |> 
-#   bind_rows(viva_data) |> 
-#   write_rds("data/processed/viva.rds")
+url <- "https://www.vivaenergy.com.au/quick-links/terminal-gate-pricing"
 
-# print("Done Viva")
+ua <- "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
 
-#--- * United ------------------------------------------------------------------
+viva_page <- read_html(url, user_agent = user_agent(ua))
 
-united <- "https://www.unitedpetroleum.com.au/terminal-gate-pricing-tgp/"
+viva_date <- viva_page |>
+  html_nodes("h4") |>
+  as.character() |>
+  str_subset("as at") |>
+  str_extract("[0-9]{1,2} [A-z]{1,4} [0-9]{4}") |>
+  parse_date(format = "%d %b %Y")
 
-united <- read_html(united) |>
+viva_data <- viva_page |>
   html_nodes("table") |>
   html_table(fill = TRUE) |>
-  magrittr::extract2(1) |> 
-  janitor::clean_names()
-
-colnames(united) <- united[1, ]
-
-united_date <- parse_date(colnames(united)[2], "%d/%m/%Y")
-
-united_data <- united |> 
-  filter(Terminal != "Terminal") |> 
-  clean_names() |> 
-  select(terminal, fuel = 2, everything()) |> 
+  magrittr::extract2(1) |>
+  janitor::clean_names() |>
+  mutate(state = ifelse(state == "", NA_character_, state)) |>
+  fill(state, .direction = "down") |>
   mutate(across(
-    -c(terminal, fuel),
-    parse_number
-  )) |> 
+    -c(state, city),
+    \(x) parse_number(as.character(x))
+  )) |>
   mutate(
-    effective_date = united_date,
+    effective_date = viva_date,
     date_downloaded = Sys.time()
   )
 
-united_data_previous <- read_rds("data/processed/united.rds")
+viva_data_previous <- read_rds("data/processed/viva.rds")
 
-united_data_previous |> 
-  bind_rows(united_data) |> 
-  write_rds("data/processed/united.rds")
+viva_data_previous |>
+  bind_rows(viva_data) |>
+  write_rds("data/processed/viva.rds")
+
+print("Done Viva")
+
+#--- * United ------------------------------------------------------------------
+
+# united <- "https://www.unitedpetroleum.com.au/terminal-gate-pricing-tgp/"
+# 
+# united <- read_html(united) |>
+#   html_nodes("table") |>
+#   html_table(fill = TRUE) |>
+#   magrittr::extract2(1) |> 
+#   janitor::clean_names()
+# 
+# colnames(united) <- united[1, ]
+# 
+# united_date <- parse_date(colnames(united)[2], "%d/%m/%Y")
+# 
+# united_data <- united |> 
+#   filter(Terminal != "Terminal") |> 
+#   clean_names() |> 
+#   select(terminal, fuel = 2, everything()) |> 
+#   mutate(across(
+#     -c(terminal, fuel),
+#     parse_number
+#   )) |> 
+#   mutate(
+#     effective_date = united_date,
+#     date_downloaded = Sys.time()
+#   )
+# 
+# united_data_previous <- read_rds("data/processed/united.rds")
+# 
+# united_data_previous |> 
+#   bind_rows(united_data) |> 
+#   write_rds("data/processed/united.rds")
 
 print("Done United")
 
