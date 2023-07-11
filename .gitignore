@@ -17,6 +17,7 @@ data/processed/*
 !data/processed/viva.rds
 !data/processed/united.rds
 !data/processed/mobil.rds
+!data/processed/puma.rds
 !/figures
 /figures/*
 !figures/README.md
