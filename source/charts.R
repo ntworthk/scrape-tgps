@@ -16,38 +16,42 @@ library(janitor)
 bp_data <- read_rds("data/processed/bp.rds")
 mobil_data <- read_rds("data/processed/mobil.rds")
 viva_data <- read_rds("data/processed/viva.rds")
+puma_data <- read_rds("data/processed/puma.rds")
 
 fuels <- tibble(
-  fuel = c("diesel", "ulp", "pulp", "e10", "x95_premium", "x98_premium", "premium_unleaded_petrol", "unleaded_petrol", "unleaded_petrol_98", "unleaded_petrol_e10"),
-  tidy_fuel = c("Diesel", "ULP", "PULP 95", "e10", "PULP 95", "PULP 98", "PULP 95", "ULP", "PULP 98", "e10")
+  fuel = c("diesel", "ulp", "pulp", "e10", "x95_premium", "x98_premium", "premium_unleaded_petrol", "unleaded_petrol", "unleaded_petrol_98", "unleaded_petrol_e10", "b5", "biodiesel_b5", "e10_unleaded_petrol", "low_aromatic_fuel", "premium_unleaded_petrol_95", "premium_unleaded_petrol_98", "uls_automotive_diesel", "unleaded_petrol_91"),
+  tidy_fuel = c("Diesel", "ULP", "PULP 95", "e10", "PULP 95", "PULP 98", "PULP 95", "ULP", "PULP 98", "e10", "b5", "b5", "e10", "Low aromatic", "PULP 95", "PULP 98", "ULS Diesel", "ULP")
 )
+
+key_fuels <- c("Diesel", "ULP")
 
 #--- Combine data --------------------------------------------------------------
 
 g <- bind_rows(
   bp_data |> mutate(brand = "BP"),
   mobil_data |> mutate(brand = "Mobil"),
-  viva_data |> mutate(brand = "Viva") |> rename(terminal = city)
+  viva_data |> mutate(brand = "Viva") |> rename(terminal = city),
+  puma_data |> mutate(brand = "Puma")
 ) |> 
-  filter(str_detect(terminal, "Botany|SYDNEY")) |> 
+  filter(str_detect(terminal, "Botany|SYDNEY|Sydney"), effective_date >= "2023-06-24") |> 
   select(-state) |> 
   pivot_longer(-c(brand, effective_date, terminal, date_downloaded), names_to = "fuel", values_to = "tgp") |> 
   left_join(fuels, by = "fuel") |> 
-  filter(!is.na(tgp)) |> 
-  ggplot(aes(x = effective_date, y = tgp, colour = tidy_fuel)) +
-  geom_line(aes(linetype = brand), linewidth = 0.7) +
+  filter(!is.na(tgp), tidy_fuel %in% key_fuels) |> 
+  ggplot(aes(x = effective_date, y = tgp, colour = brand)) +
+  geom_line(aes(linetype = tidy_fuel), linewidth = 0.7) +
   geom_point() +
   geom_text(
     data = \(x) filter(x, effective_date == max(effective_date)),
-    aes(label = tidy_fuel),
+    aes(label = brand),
     hjust = 0,
     nudge_x = 0.05,
     show.legend = FALSE
   ) +
-  labs(x = "Effective date", y = "Terminal gate price (c/L)", colour = "Fuel", linetype = "Supplier") +
+  labs(x = "Effective date", y = "Terminal gate price (c/L)", colour = "Supplier", linetype = "Fuel") +
   scale_x_date(expand = expansion(mult = c(0.05, 0.1))) +
   scale_colour_manual(
-    values = c("#008698", "#232C31", "#ECAA2B", "#8AC1AF", "#E14D18"),
+    values = c("#008698", "#232C31", "#ECAA2B", "#E14D18"),
     guide = guide_none()
   ) +
   theme_light(base_family = "Arial", base_size = 12) +
