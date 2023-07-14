@@ -17,10 +17,12 @@ bp_data <- read_rds("data/processed/bp.rds")
 mobil_data <- read_rds("data/processed/mobil.rds")
 viva_data <- read_rds("data/processed/viva.rds")
 puma_data <- read_rds("data/processed/puma.rds")
+ampol_data <- read_rds("data/processed/ampol.rds")
+ampol_data <- ampol_data |> pivot_wider(names_from = fuel, values_from = "tgp")
 
 fuels <- tibble(
-  fuel = c("diesel", "ulp", "pulp", "e10", "x95_premium", "x98_premium", "premium_unleaded_petrol", "unleaded_petrol", "unleaded_petrol_98", "unleaded_petrol_e10", "b5", "biodiesel_b5", "e10_unleaded_petrol", "low_aromatic_fuel", "premium_unleaded_petrol_95", "premium_unleaded_petrol_98", "uls_automotive_diesel", "unleaded_petrol_91"),
-  tidy_fuel = c("Diesel", "ULP", "PULP 95", "e10", "PULP 95", "PULP 98", "PULP 95", "ULP", "PULP 98", "e10", "b5", "b5", "e10", "Low aromatic", "PULP 95", "PULP 98", "ULS Diesel", "ULP")
+  fuel = c("diesel", "ulp", "pulp", "e10", "x95_premium", "x98_premium", "premium_unleaded_petrol", "unleaded_petrol", "unleaded_petrol_98", "unleaded_petrol_e10", "b5", "biodiesel_b5", "e10_unleaded_petrol", "low_aromatic_fuel", "premium_unleaded_petrol_95", "premium_unleaded_petrol_98", "uls_automotive_diesel", "unleaded_petrol_91", "DIESEL", "E10", "PULP95", "PULP98", "ULP"),
+  tidy_fuel = c("Diesel", "ULP", "PULP 95", "e10", "PULP 95", "PULP 98", "PULP 95", "ULP", "PULP 98", "e10", "b5", "b5", "e10", "Low aromatic", "PULP 95", "PULP 98", "ULS Diesel", "ULP", "Diesel", "e10", "PULP 95", "PULP 98", "ULP")
 )
 
 key_fuels <- c("Diesel", "ULP")
@@ -31,7 +33,8 @@ g <- bind_rows(
   bp_data |> mutate(brand = "BP"),
   mobil_data |> mutate(brand = "Mobil"),
   viva_data |> mutate(brand = "Viva") |> rename(terminal = city),
-  puma_data |> mutate(brand = "Puma")
+  puma_data |> mutate(brand = "Puma"),
+  ampol_data |> mutate(brand = "Ampol")
 ) |> 
   filter(str_detect(terminal, "Botany|SYDNEY|Sydney"), effective_date >= "2023-06-24") |> 
   select(-state) |> 
@@ -51,7 +54,7 @@ g <- bind_rows(
   labs(x = "Effective date", y = "Terminal gate price (c/L)", colour = "Supplier", linetype = "Fuel") +
   scale_x_date(expand = expansion(mult = c(0.05, 0.1))) +
   scale_colour_manual(
-    values = c("#008698", "#232C31", "#ECAA2B", "#E14D18"),
+    values = c("#008698", "#232C31", "#ECAA2B", "#E14D18", "#AA2E60"),
     guide = guide_none()
   ) +
   theme_light(base_family = "Arial", base_size = 12) +
