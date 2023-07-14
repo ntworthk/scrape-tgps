@@ -18,6 +18,7 @@ data/processed/*
 !data/processed/united.rds
 !data/processed/mobil.rds
 !data/processed/puma.rds
+!data/processed/ampol.rds
 !/figures
 /figures/*
 !figures/README.md
