@@ -227,30 +227,30 @@ print("Done Mobil")
 #--- * Puma --------------------------------------------------------------------
 
 
-puma <- "https://www.pumaenergy.com.au/for-business/terminal-gate-price/"
-
-puma_page <- read_html(puma)
-
-effective_date <- puma_page |> 
-  as.character() |> 
-  str_extract("Pricing effective from [0-9]+ [A-z]+ [0-9]{4}") |> 
-  str_extract("[0-9]{1,2} [A-z]+ [0-9]{4}") |> 
-  parse_date("%d %B %Y")
-
-puma_data <- puma_page |>
-  html_nodes("table") |>
-  html_table(fill = TRUE) |>
-  map(\(x) mutate(x, across(where(is.character) & !c(Terminal), parse_number))) |> 
-  bind_rows() |> 
-  as_tibble() |>
-  janitor::clean_names() |> 
-  mutate(effective_date = effective_date,
-         date_downloaded = Sys.time())
-
-puma_data_previous <- read_rds("data/processed/puma.rds")
-
-puma_data_previous |> 
-  bind_rows(puma_data) |> 
-  write_rds("data/processed/puma.rds")
+# puma <- "https://www.pumaenergy.com.au/for-business/terminal-gate-price/"
+# 
+# puma_page <- read_html(puma)
+# 
+# effective_date <- puma_page |> 
+#   as.character() |> 
+#   str_extract("Pricing effective from [0-9]+ [A-z]+ [0-9]{4}") |> 
+#   str_extract("[0-9]{1,2} [A-z]+ [0-9]{4}") |> 
+#   parse_date("%d %B %Y")
+# 
+# puma_data <- puma_page |>
+#   html_nodes("table") |>
+#   html_table(fill = TRUE) |>
+#   map(\(x) mutate(x, across(where(is.character) & !c(Terminal), parse_number))) |> 
+#   bind_rows() |> 
+#   as_tibble() |>
+#   janitor::clean_names() |> 
+#   mutate(effective_date = effective_date,
+#          date_downloaded = Sys.time())
+# 
+# puma_data_previous <- read_rds("data/processed/puma.rds")
+# 
+# puma_data_previous |> 
+#   bind_rows(puma_data) |> 
+#   write_rds("data/processed/puma.rds")
 
 print("Done Puma")
