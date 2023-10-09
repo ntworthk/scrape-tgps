@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron: '*/30 01 * * *'
+    - cron: '*/53 00 * * *'
   workflow_dispatch:
 
 name: refresh-data
