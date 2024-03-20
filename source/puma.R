@@ -19,32 +19,18 @@ purl <- "https://www.pumaenergy.com.au/for-business/terminal-gate-price/?date={t
 
 tgp_date <- Sys.Date()
 
-dates <- seq.Date(as_date("2013-12-16"), Sys.Date(), 1)
-
-new_dates <- split(dates, ceiling(seq_along(dates)/100))
-
-p_data <- vector("list", length = length(new_dates))
-
-for (i in seq.int(1, length(new_dates), 1)) {
-  
-  p_data[[i]] <- map_dfr(new_dates[[i]], function(tgp_date) {
-    
-    read_html(glue(purl)) |>
-      html_nodes("table") |>
-      html_table(fill = TRUE) |>
-      map(\(x) mutate(x, across(where(is.character) & !c(Terminal), parse_number))) |> 
-      bind_rows() |> 
-      as_tibble() |>
-      janitor::clean_names() |> 
-      mutate(effective_date = tgp_date)
-    
-  })
-  
-  print(i)
-  
-}
-
-p_data |> 
+today_data <- read_html(glue(purl)) |>
+  html_nodes("table") |>
+  html_table(fill = TRUE) |>
+  map(\(x) mutate(x, across(where(is.character) & !c(Terminal), parse_number))) |> 
   bind_rows() |> 
+  as_tibble() |>
+  janitor::clean_names() |> 
+  mutate(effective_date = tgp_date)
+
+old_data <- read_rds("data/processed/puma.rds")
+
+old_data |> 
+  bind_rows(today_data) |> 
   write_rds("data/processed/puma.rds")
 
