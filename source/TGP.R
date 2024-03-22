@@ -148,38 +148,38 @@ print("Done Viva")
 
 #--- * United ------------------------------------------------------------------
 
-united <- "https://www.unitedpetroleum.com.au/terminal-gate-pricing-tgp/"
+#united <- "https://www.unitedpetroleum.com.au/terminal-gate-pricing-tgp/"
+#
+#united <- read_html(united) |>
+  #html_nodes("table") |>
+  #html_table(fill = TRUE) |>
+  #magrittr::extract2(1) |>
+  #janitor::clean_names()
+#
+#colnames(united) <- united[1, ]
+#
+#united_date <- parse_date(colnames(united)[2], "%d/%m/%Y")
+#
+#united_data <- united |>
+  #filter(Terminal != "Terminal") |>
+  #clean_names() |>
+  #select(terminal, fuel = 2, everything()) |>
+  #mutate(across(
+    #-c(terminal, fuel),
+    #parse_number
+  #)) |>
+  #mutate(
+    #effective_date = united_date,
+    #date_downloaded = Sys.time()
+  #)
+#
+#united_data_previous <- read_rds("data/processed/united.rds")
+#
+#united_data_previous |>
+  #bind_rows(united_data) |>
+  #write_rds("data/processed/united.rds")
 
-united <- read_html(united) |>
-  html_nodes("table") |>
-  html_table(fill = TRUE) |>
-  magrittr::extract2(1) |>
-  janitor::clean_names()
-
-colnames(united) <- united[1, ]
-
-united_date <- parse_date(colnames(united)[2], "%d/%m/%Y")
-
-united_data <- united |>
-  filter(Terminal != "Terminal") |>
-  clean_names() |>
-  select(terminal, fuel = 2, everything()) |>
-  mutate(across(
-    -c(terminal, fuel),
-    parse_number
-  )) |>
-  mutate(
-    effective_date = united_date,
-    date_downloaded = Sys.time()
-  )
-
-united_data_previous <- read_rds("data/processed/united.rds")
-
-united_data_previous |>
-  bind_rows(united_data) |>
-  write_rds("data/processed/united.rds")
-
-print("Done United")
+#print("Done United")
 
 #--- * Mobil -------------------------------------------------------------------
 
