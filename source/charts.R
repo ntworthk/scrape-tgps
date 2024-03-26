@@ -43,7 +43,7 @@ g <- bind_rows(
   filter(!is.na(tgp), tidy_fuel %in% key_fuels) |> 
   ggplot(aes(x = effective_date, y = tgp, colour = brand)) +
   geom_line(aes(linetype = tidy_fuel), linewidth = 0.7) +
-  geom_point() +
+  #geom_point() +
   geom_text(
     data = \(x) filter(x, effective_date == max(effective_date)),
     aes(label = brand),
