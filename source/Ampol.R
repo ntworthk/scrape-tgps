@@ -51,12 +51,14 @@ base_data <- map_dfr(ss, function(line) {
 current_day <- rr |>
   str_subset("Current E") |> 
   str_extract("[0-9].*") |> 
-  parse_date(format = "%d %B %Y")
+  parse_date(format = "%d %B %Y") |> 
+  first()
 
 previous_day <- rr |>
   str_subset("Previous E") |> 
   str_extract("[0-9].*") |> 
-  parse_date(format = "%d %B %Y")
+  parse_date(format = "%d %B %Y") |> 
+  first()
 
 
 ampol_data <- base_data |> 
