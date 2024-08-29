@@ -27,7 +27,7 @@ jobs:
         run: Rscript -e 'install.packages(c("vctrs"))'
 
       - name: Install packages
-        run: Rscript -e 'install.packages(c("tidyverse", "lubridate", "magrittr", "here", "janitor", "readxl", "rvest", "glue", "pdftools", "httr")'
+        run: Rscript -e 'install.packages(c("tidyverse", "lubridate", "magrittr", "here", "janitor", "readxl", "rvest", "glue", "pdftools", "httr"))'
 
       - name: Get data - TGP
         run: Rscript -e 'source(here::here("source", "go.R"), echo = TRUE)'
