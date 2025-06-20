@@ -183,46 +183,53 @@ print("Done United")
 
 #--- * Mobil -------------------------------------------------------------------
 
-mobil <- "https://www.mobil.com.au/en-au/commercial-fuels/terminal-gate"
-
-mobil_page <- read_html(mobil)
-
-mobil <- mobil_page |>
-  html_nodes("table") |>
-  html_table(fill = TRUE) |>
-  magrittr::extract2(1) |> 
-  janitor::clean_names()
-
-colnames(mobil) <- c("state", "terminal", colnames(mobil)[3:ncol(mobil)])
-
-mobil_date <- mobil_page |> 
-  html_nodes("div") |> 
-  as.character() |> 
-  str_subset("As at") |> 
-  str_extract("[0-9]{1,2} [A-z]+ [0-9]{4}") |> 
-  first() |> 
-  parse_date("%d %B %Y")
-
-mobil_data <- mobil |> 
-  filter(state != "") |> 
-  clean_names() |> 
-  mutate(across(
-    -c(state, terminal),
-    \(x) parse_number(as.character(x))
-  )) |> 
-  mutate(
-    effective_date = mobil_date,
-    date_downloaded = Sys.time()
-  )
-
-mobil_data_previous <- read_rds("data/processed/mobil.rds")
-
-mobil_data_previous |> 
-  bind_rows(mobil_data) |> 
-  write_rds("data/processed/mobil.rds")
-
-print("Done Mobil")
-
+tryCatch(
+  
+  {
+    mobil <- "https://www.mobil.com.au/en-au/commercial-fuels/terminal-gate"
+    
+    mobil_page <- read_html(mobil)
+    
+    mobil <- mobil_page |>
+      html_nodes("table") |>
+      html_table(fill = TRUE) |>
+      magrittr::extract2(1) |> 
+      janitor::clean_names()
+    
+    colnames(mobil) <- c("state", "terminal", colnames(mobil)[3:ncol(mobil)])
+    
+    mobil_date <- mobil_page |> 
+      html_nodes("div") |> 
+      as.character() |> 
+      str_subset("As at") |> 
+      str_extract("[0-9]{1,2} [A-z]+ [0-9]{4}") |> 
+      first() |> 
+      parse_date("%d %B %Y")
+    
+    mobil_data <- mobil |> 
+      filter(state != "") |> 
+      clean_names() |> 
+      mutate(across(
+        -c(state, terminal),
+        \(x) parse_number(as.character(x))
+      )) |> 
+      mutate(
+        effective_date = mobil_date,
+        date_downloaded = Sys.time()
+      )
+    
+    mobil_data_previous <- read_rds("data/processed/mobil.rds")
+    
+    mobil_data_previous |> 
+      bind_rows(mobil_data) |> 
+      write_rds("data/processed/mobil.rds")
+    
+    print("Done Mobil")
+    
+  },
+  error = function(e) {print("Unable to do Mobil")}
+  
+)
 
 #--- * Puma --------------------------------------------------------------------
 
