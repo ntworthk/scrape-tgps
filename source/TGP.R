@@ -27,10 +27,13 @@ download_excel <- function(url,
                            .name_repair = "unique"
 ) {
   
-  tmp_file <- tempfile() 
-  utils::download.file(url, tmp_file, mode = "wb") 
+  tmp_file <- tempfile()
   
-  downloaded_file <- read_excel(tmp_file,
+  httr::GET(url, 
+            httr::user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"),
+            httr::write_disk(tmp_file, overwrite = TRUE))
+  
+  downloaded_file <- readxl::read_excel(tmp_file,
                                 sheet = sheet,
                                 range = range,
                                 col_names = col_names,
@@ -47,7 +50,6 @@ download_excel <- function(url,
   unlink(tmp_file)
   
   downloaded_file
-  
 }
 
 #--- Import data ---------------------------------------------------------------
